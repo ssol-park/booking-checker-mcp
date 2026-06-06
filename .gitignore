@@ -8,6 +8,9 @@ src/debug.ts
 # 혹시 다시 생성될 경우 대비
 screenshot_*.png
 
+# IDE
+.idea/
+
 # Node.js
 node_modules/
 dist/
