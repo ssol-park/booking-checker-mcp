@@ -57,23 +57,6 @@ npx ts-node src/checker.ts --name <숙소명> --checkin <날짜> --checkout <날
 npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin 0719 --checkout 0721 --guests 4 --headless
 ```
 
-**출력 예시**
-
-```
-"쏠비치 삼척" 네이버 검색 중...
-호텔 페이지: https://hotels.naver.com/accommodation/search/detail/domestic/35816582/rates?...
-
-========== 결과 ==========
-숙소    : 쏠비치 삼척
-체크인  : 2026-07-19
-체크아웃: 2026-07-21
-인원    : 4명
-URL     : https://hotels.naver.com/...
-
-✅ 예약 가능한 객실이 있습니다! (최저가 1,284,000원~)
-===========================
-```
-
 ---
 
 ### MCP 서버
