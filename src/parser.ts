@@ -55,7 +55,7 @@ export function parseDate(input: string): ParsedDate {
 
   throw new Error(
     `날짜 형식을 인식할 수 없습니다: "${raw}"\n` +
-    `지원 형식: 2026-07-18 / 07-18 / 0718 / 7월18일 / 7월 18`
+      `지원 형식: 2026-07-18 / 07-18 / 0718 / 7월18일 / 7월 18`
   );
 }
 

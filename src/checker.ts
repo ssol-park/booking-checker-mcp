@@ -66,8 +66,12 @@ async function main() {
 
   console.log(`\n검색 조건`);
   console.log(`  숙소  : ${argv.name}`);
-  console.log(`  체크인 : ${checkIn.year}-${String(checkIn.month).padStart(2, "0")}-${String(checkIn.day).padStart(2, "0")}`);
-  console.log(`  체크아웃: ${checkOut.year}-${String(checkOut.month).padStart(2, "0")}-${String(checkOut.day).padStart(2, "0")}`);
+  console.log(
+    `  체크인 : ${checkIn.year}-${String(checkIn.month).padStart(2, "0")}-${String(checkIn.day).padStart(2, "0")}`
+  );
+  console.log(
+    `  체크아웃: ${checkOut.year}-${String(checkOut.month).padStart(2, "0")}-${String(checkOut.day).padStart(2, "0")}`
+  );
   console.log(`  인원  : ${guests}명\n`);
 
   await checkAvailability({

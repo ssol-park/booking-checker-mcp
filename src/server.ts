@@ -17,7 +17,10 @@ server.tool(
     checkin: z.string().describe("체크인 날짜 (예: 0718, 7월18일, 2026-07-18)"),
     checkout: z.string().describe("체크아웃 날짜"),
     guests: z.number().int().min(1).default(2).describe("인원 수 (기본값: 2)"),
-    headless: z.boolean().default(false).describe("브라우저 창 숨김 여부 (기본값: false — 창 표시)"),
+    headless: z
+      .boolean()
+      .default(false)
+      .describe("브라우저 창 숨김 여부 (기본값: false — 창 표시)"),
   },
   async ({ name, checkin, checkout, guests, headless }) => {
     const checkIn = parseDate(checkin);

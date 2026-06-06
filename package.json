@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/checker.ts",
-    "mcp": "ts-node src/server.ts"
+    "mcp": "ts-node src/server.ts",
+    "lint": "eslint src",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +23,13 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/minimist": "^1.2.5",
-    "@types/node": "^25.9.2"
+    "@types/node": "^25.9.2",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3"
   }
 }

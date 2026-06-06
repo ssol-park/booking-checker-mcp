@@ -42,7 +42,6 @@ export async function checkAvailability(options: CheckOptions): Promise<void> {
     // 3. 결과 파싱 및 출력
     const result = await parseResult(page, url);
     printResult(options, result);
-
   } catch (err: any) {
     console.error(`\n오류 발생: ${err.message}`);
   } finally {
@@ -58,15 +57,13 @@ export async function checkAvailability(options: CheckOptions): Promise<void> {
 // 네이버 검색 결과에서 hotels.naver.com 링크를 찾아 경로(pathname)만 반환
 async function findHotelBaseUrl(page: Page, name: string): Promise<string | null> {
   console.log(`"${name}" 네이버 검색 중...`);
-  await page.goto(
-    `https://search.naver.com/search.naver?query=${encodeURIComponent(name)}`,
-    { waitUntil: "networkidle" }
-  );
+  await page.goto(`https://search.naver.com/search.naver?query=${encodeURIComponent(name)}`, {
+    waitUntil: "networkidle",
+  });
   await page.waitForTimeout(1000);
 
-  const hotelLinks = await page.$$eval(
-    "a[href*='hotels.naver.com/accommodation']",
-    (els) => els.map((el) => (el as HTMLAnchorElement).href)
+  const hotelLinks = await page.$$eval("a[href*='hotels.naver.com/accommodation']", (els) =>
+    els.map((el) => (el as HTMLAnchorElement).href)
   );
 
   for (const href of hotelLinks) {
@@ -112,7 +109,8 @@ async function parseResult(page: Page, url: string): Promise<CheckResult> {
   const priceMatch = bodyText.match(/([\d,]+)원~/);
   const lowestPrice = priceMatch ? `${priceMatch[1]}원~` : null;
 
-  const available = lowestPrice !== null || ["예약하기", "가격비교", "원/1박"].some((k) => bodyText.includes(k));
+  const available =
+    lowestPrice !== null || ["예약하기", "가격비교", "원/1박"].some((k) => bodyText.includes(k));
 
   return { available, lowestPrice, url };
 }
