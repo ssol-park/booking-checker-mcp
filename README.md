@@ -1,91 +1,127 @@
-# 네이버 예약 가용성 체커
+# 네이버 호텔 예약 가능 여부 확인기
 
-## 프로젝트 개요
-
-네이버 예약 기준으로 원하는 숙소와 날짜를 입력하면, 예약 가능한 숙소가 있는지 자동으로 확인하고 이메일로 알림을 보내주는 프로그램.
-
----
-
-## 요구사항
-
-- 숙소명과 숙박 기간을 입력받아 해당 일자의 예약 가능 여부 확인
-- 예약 가능 시 **이메일 알림** 발송
-- Mac / Windows 스케줄러에 등록해서 **주기적 자동 실행**
+네이버 호텔(hotels.naver.com)에서 원하는 숙소의 예약 가능 여부와 최저가를 자동으로 확인합니다.
+CLI와 MCP 서버 두 가지 방식으로 사용할 수 있습니다.
 
 ---
 
-## 기술 스택 결정
+## 기능
 
-### 크롤링 방식
+- 숙소명, 체크인/체크아웃 날짜, 인원 수 입력으로 예약 가능 여부 확인
+- 예약 가능 시 최저가 표시
+- 다양한 날짜 입력 형식 지원 (`0718`, `7월18일`, `2026-07-18` 등)
+- Claude 등 MCP 클라이언트에서 도구로 직접 호출 가능
 
-| 방식 | 결정 | 이유 |
-|------|------|------|
-| 네이버 공식 API | ❌ | 숙박 가용성 조회 공개 API 없음 |
-| Claude API + MCP | ❌ | 유료 (토큰당 비용 발생) |
-| Gemini API + browser-use | 보류 | 무료 티어 있으나 API 의존 |
-| **순수 Playwright** | ✅ | 완전 무료, 특정 페이지 반복 체크에 최적 |
+---
 
-### 최종 구성
+## 사전 준비
 
-```
-Python + Playwright
-├── 브라우저 자동화 (헤드리스)
-├── 네이버 예약 페이지 접속 및 날짜 선택
-├── 예약 가능 여부 파싱
-├── 가능 시 이메일 발송 (smtplib, 무료)
-└── 스케줄 등록
-    ├── Mac: cron 또는 launchd
-    └── Windows: 작업 스케줄러
+- Node.js 18 이상
+- Playwright 브라우저 설치
+
+```bash
+npx playwright install chromium
 ```
 
 ---
 
-## 핵심 기술 이슈
+## 설치
 
-- `booking.naver.com`은 **JavaScript 렌더링 필수** (React 앱)
-- 단순 HTTP 요청(requests, curl)으로는 접근 불가
-- 실제 브라우저를 띄우는 **Playwright만 정상 접근 가능**
-
----
-
-## 직접 접근 시도 결과
-
-### 시도 1: WebSearch로 네이버 예약 URL 탐색
-- **방법**: `네이버 예약 쏠비치 삼척 booking.naver.com` 검색
-- **결과**: ❌ 직접적인 네이버 예약 URL 없음
-- **원인**: 검색 결과가 Hotels.com, Expedia 등 서드파티 사이트만 노출됨. 네이버 예약 직접 링크는 검색엔진에 노출되지 않음
-
-### 시도 2: booking.naver.com 직접 HTTP 요청
-- **방법**: `https://booking.naver.com/booking/6/bizes/search?startDate=2026-07-18&endDate=2026-07-19&keyword=쏠비치+삼척` 직접 fetch
-- **결과**: ❌ `Claude Code is unable to fetch from booking.naver.com`
-- **원인**:
-  - 네이버 예약은 **React 기반 SPA**로 JavaScript 실행 없이는 콘텐츠 미렌더링
-  - 단순 HTTP GET 요청으로는 빈 HTML 껍데기만 반환
-  - 봇 차단 정책 (User-Agent 필터링, IP 제한 등) 적용 가능성
-  - 실제 브라우저 엔진(Chromium 등)을 통한 접근만 정상 동작
-
-### 시도 3: 소노호텔앤리조트 공식 홈페이지 fetch
-- **방법**: `https://www.sonohotelsresorts.com/solbeach_sc` fetch
-- **결과**: ❌ 예약 링크 없음
-- **원인**: 공식 홈페이지도 CSS/JS 코드만 응답, 네이버 예약으로 연결되는 링크 미포함
-
-### 결론
-> 네이버 예약 페이지는 **JavaScript 렌더링이 필수**이므로, 실제 브라우저를 자동화하는 **Playwright** 없이는 어떤 방식으로도 접근 불가.
+```bash
+git clone https://github.com/<your-username>/hotel-availability-checker.git
+cd hotel-availability-checker
+npm install
+```
 
 ---
 
-## 테스트 케이스
+## 사용법
 
-- 숙소: 쏠비치 삼척 (강원도 삼척)
-- 날짜: 2026년 7월 18일 (1박)
+### CLI
+
+```bash
+npx ts-node src/checker.ts --name <숙소명> --checkin <날짜> --checkout <날짜> [--guests <인원>] [--headless]
+```
+
+| 옵션 | 설명 | 기본값 | 예시 |
+|------|------|--------|------|
+| `--name` | 숙소명 (필수) | - | `"쏠비치 삼척"` |
+| `--checkin` | 체크인 날짜 (필수) | - | `0718` |
+| `--checkout` | 체크아웃 날짜 (필수) | - | `0719` |
+| `--guests` | 인원 수 | `2` | `4` |
+| `--headless` | 브라우저 창 숨김 | `false` | - |
+
+**예시**
+
+```bash
+npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin 0719 --checkout 0721 --guests 4 --headless
+```
+
+**출력 예시**
+
+```
+"쏠비치 삼척" 네이버 검색 중...
+호텔 페이지: https://hotels.naver.com/accommodation/search/detail/domestic/35816582/rates?...
+
+========== 결과 ==========
+숙소    : 쏠비치 삼척
+체크인  : 2026-07-19
+체크아웃: 2026-07-21
+인원    : 4명
+URL     : https://hotels.naver.com/...
+
+✅ 예약 가능한 객실이 있습니다! (최저가 1,284,000원~)
+===========================
+```
 
 ---
 
-## 구현 예정
+### MCP 서버
 
-- [ ] 네이버 예약 페이지 구조 분석
-- [ ] Playwright 크롤링 스크립트 작성
-- [ ] 이메일 알림 모듈 작성
-- [ ] CLI 인터페이스 (숙소명, 날짜 입력)
-- [ ] Mac cron 등록 가이드
-- [ ] Windows 작업 스케줄러 등록 가이드
+Claude Desktop 등 MCP 클라이언트에서 `check_booking` 도구로 호출할 수 있습니다.
+
+**`~/.mcp.json` 설정**
+
+```json
+{
+  "mcpServers": {
+    "naver-booking": {
+      "command": "npx",
+      "args": ["ts-node", "/절대경로/hotel-availability-checker/src/server.ts"]
+    }
+  }
+}
+```
+
+**도구 파라미터**
+
+| 파라미터 | 타입 | 설명 | 기본값 |
+|----------|------|------|--------|
+| `name` | string | 숙소명 | - |
+| `checkin` | string | 체크인 날짜 | - |
+| `checkout` | string | 체크아웃 날짜 | - |
+| `guests` | number | 인원 수 | `2` |
+| `headless` | boolean | 브라우저 창 숨김 | `false` |
+
+---
+
+## 날짜 입력 형식
+
+| 형식 | 예시 |
+|------|------|
+| `YYYY-MM-DD` | `2026-07-18` |
+| `YYYY/MM/DD` | `2026/07/18` |
+| `MM-DD` | `07-18` |
+| `MMDD` | `0718` |
+| `M월DD일` | `7월18일` |
+| `M월 DD일` | `7월 18일` |
+| `YYYY년 M월 DD일` | `2026년 7월 18일` |
+
+---
+
+## 기술 스택
+
+- **TypeScript** + **Node.js**
+- **Playwright** — 브라우저 자동화
+- **@modelcontextprotocol/sdk** — MCP 서버
+- **Zod** — 입력값 검증
