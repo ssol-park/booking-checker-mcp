@@ -42,8 +42,9 @@ export async function checkAvailability(options: CheckOptions): Promise<void> {
     // 3. 결과 파싱 및 출력
     const result = await parseResult(page, url);
     printResult(options, result);
-  } catch (err: any) {
-    console.error(`\n오류 발생: ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`\n오류 발생: ${message}`);
   } finally {
     const keepOpen = !(options.headless ?? false) && hotelFound;
     if (keepOpen) {

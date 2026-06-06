@@ -42,15 +42,15 @@ async function main() {
 
   try {
     checkIn = parseDate(String(argv.checkin));
-  } catch (e: any) {
-    console.error(`체크인 날짜 오류: ${e.message}`);
+  } catch (e: unknown) {
+    console.error(`체크인 날짜 오류: ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);
   }
 
   try {
     checkOut = parseDate(String(argv.checkout));
-  } catch (e: any) {
-    console.error(`체크아웃 날짜 오류: ${e.message}`);
+  } catch (e: unknown) {
+    console.error(`체크아웃 날짜 오류: ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);
   }
 
