@@ -1,0 +1,17 @@
+# 개인용 문서 (개발 과정 기록, 내부 계획)
+docs/
+
+# 개발/디버그용 스크립트 (공개 불필요)
+src/poc.ts
+src/debug.ts
+
+# 혹시 다시 생성될 경우 대비
+screenshot_*.png
+
+# Node.js
+node_modules/
+dist/
+
+# 환경변수 (향후 Phase 3 이메일 알림 등)
+.env
+.env.*

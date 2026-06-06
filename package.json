@@ -1,0 +1,26 @@
+{
+  "name": "booking",
+  "version": "1.0.0",
+  "description": "네이버 예약 기준으로 원하는 숙소와 날짜를 입력하면, 예약 가능한 숙소가 있는지 자동으로 확인하고 이메일로 알림을 보내주는 프로그램.",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/checker.ts",
+    "mcp": "ts-node src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "minimist": "^1.2.8",
+    "playwright": "^1.60.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^25.9.2"
+  }
+}
