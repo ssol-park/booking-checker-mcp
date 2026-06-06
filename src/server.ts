@@ -9,18 +9,20 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-server.tool(
+server.registerTool(
   "check_booking",
-  "네이버 예약 페이지에서 숙소의 예약 가능 여부를 확인합니다.",
   {
-    name: z.string().describe("숙소명 (예: 쏠비치 삼척)"),
-    checkin: z.string().describe("체크인 날짜 (예: 0718, 7월18일, 2026-07-18)"),
-    checkout: z.string().describe("체크아웃 날짜"),
-    guests: z.number().int().min(1).default(2).describe("인원 수 (기본값: 2)"),
-    headless: z
-      .boolean()
-      .default(false)
-      .describe("브라우저 창 숨김 여부 (기본값: false — 창 표시)"),
+    description: "네이버 예약 페이지에서 숙소의 예약 가능 여부를 확인합니다.",
+    inputSchema: {
+      name: z.string().describe("숙소명 (예: 쏠비치 삼척)"),
+      checkin: z.string().describe("체크인 날짜 (예: 0718, 7월18일, 2026-07-18)"),
+      checkout: z.string().describe("체크아웃 날짜"),
+      guests: z.number().int().min(1).default(2).describe("인원 수 (기본값: 2)"),
+      headless: z
+        .boolean()
+        .default(false)
+        .describe("브라우저 창 숨김 여부 (기본값: false — 창 표시)"),
+    },
   },
   async ({ name, checkin, checkout, guests, headless }) => {
     const checkIn = parseDate(checkin);
