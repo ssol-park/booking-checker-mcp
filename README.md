@@ -1,7 +1,7 @@
 # 네이버 호텔 예약 가능 여부 확인기
 
 네이버 호텔(hotels.naver.com)에서 원하는 숙소의 예약 가능 여부와 최저가를 자동으로 확인합니다.
-CLI와 MCP 서버 두 가지 방식으로 사용할 수 있습니다.
+Claude 등 MCP 클라이언트에서 자연어로 호출할 수 있습니다.
 
 ---
 
@@ -28,38 +28,14 @@ npx playwright install chromium
 ## 설치
 
 ```bash
-git clone https://github.com/<your-username>/hotel-availability-checker.git
-cd hotel-availability-checker
+git clone https://github.com/ssol-park/booking-checker-mcp.git
+cd booking-checker-mcp
 npm install
 ```
 
 ---
 
 ## 사용법
-
-### CLI
-
-```bash
-npx ts-node src/checker.ts --name <숙소명> --checkin <날짜> --checkout <날짜> [--guests <인원>] [--headless]
-```
-
-| 옵션 | 설명 | 기본값 | 예시 |
-|------|------|--------|------|
-| `--name` | 숙소명 (필수) | - | `"쏠비치 삼척"` |
-| `--checkin` | 체크인 날짜 (필수) | - | `0718` |
-| `--checkout` | 체크아웃 날짜 (필수) | - | `0719` |
-| `--guests` | 인원 수 | `2` | `4` |
-| `--headless` | 브라우저 창 숨김 | `false` | - |
-
-**예시**
-
-```bash
-npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin 0719 --checkout 0721 --guests 4 --headless
-```
-
----
-
-### MCP 서버
 
 Claude Desktop 등 MCP 클라이언트에서 `check_booking` 도구로 호출할 수 있습니다.
 
@@ -70,35 +46,20 @@ Claude Desktop 등 MCP 클라이언트에서 `check_booking` 도구로 호출할
   "mcpServers": {
     "naver-booking": {
       "command": "npx",
-      "args": ["ts-node", "/절대경로/hotel-availability-checker/src/server.ts"]
+      "args": ["ts-node", "/Users/yourname/booking-checker-mcp/src/server.ts"]
     }
   }
 }
 ```
 
-**도구 파라미터**
+> `/Users/yourname/booking-checker-mcp` 부분을 실제 clone한 경로로 변경하세요.
 
-| 파라미터 | 타입 | 설명 | 기본값 |
-|----------|------|------|--------|
-| `name` | string | 숙소명 | - |
-| `checkin` | string | 체크인 날짜 | - |
-| `checkout` | string | 체크아웃 날짜 | - |
-| `guests` | number | 인원 수 | `2` |
-| `headless` | boolean | 브라우저 창 숨김 | `false` |
+**프롬프트 예시**
 
----
-
-## 날짜 입력 형식
-
-| 형식 | 예시 |
-|------|------|
-| `YYYY-MM-DD` | `2026-07-18` |
-| `YYYY/MM/DD` | `2026/07/18` |
-| `MM-DD` | `07-18` |
-| `MMDD` | `0718` |
-| `M월DD일` | `7월18일` |
-| `M월 DD일` | `7월 18일` |
-| `YYYY년 M월 DD일` | `2026년 7월 18일` |
+```
+[숙소명] 7월 19일 체크인 21일 체크아웃 4명 예약 가능한지 확인해줘
+[숙소명] 2026-08-01 ~ 2026-08-03 2명 예약 되는지 봐줘
+```
 
 ---
 
