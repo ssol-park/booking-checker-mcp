@@ -25,7 +25,13 @@ export async function sendNotification(result: CheckResult, options: NotifyOptio
     auth: { user, pass },
   });
 
-  const priceStr = result.lowestPrice ? ` (최저가 ${result.lowestPrice})` : "";
+  const statusLine = result.available
+    ? `✅ 예약 가능한 객실이 있습니다!${result.lowestPrice ? ` (최저가 ${result.lowestPrice})` : ""}`
+    : `❌ 해당 조건의 예약 가능한 객실이 없습니다.`;
+
+  const subject = result.available
+    ? `✅ 예약 가능 알림 - ${options.hotelName}`
+    : `❌ 예약 불가 알림 - ${options.hotelName}`;
 
   const body = [
     `숙소    : ${options.hotelName}`,
@@ -34,13 +40,13 @@ export async function sendNotification(result: CheckResult, options: NotifyOptio
     `인원    : ${options.guests}명`,
     `URL     : ${result.url}`,
     ``,
-    `✅ 예약 가능한 객실이 있습니다!${priceStr}`,
+    statusLine,
   ].join("\n");
 
   await transporter.sendMail({
     from: user,
     to: options.to,
-    subject: `✅ 예약 가능 알림 - ${options.hotelName}`,
+    subject,
     text: body,
   });
 
