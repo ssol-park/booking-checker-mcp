@@ -1,27 +1,32 @@
+import "dotenv/config";
 import minimist from "minimist";
 import { parseDate, ParsedDate } from "./parser";
 import { checkAvailability } from "./scraper";
+import { sendNotification } from "./notifier";
 
 const USAGE = `
 사용법:
-  npx ts-node src/checker.ts --name <숙소명> --checkin <날짜> --checkout <날짜> [--guests <인원>]
+  npx ts-node src/checker.ts --name <숙소명> --checkin <날짜> --checkout <날짜> [--guests <인원>] [--notify] [--to <이메일>]
 
 옵션:
-  --name      숙소명 (필수)        예: "쏠비치 삼척"
-  --checkin   체크인 날짜 (필수)   예: 2026-07-18 / 0718 / 7월18일 / 7-18
-  --checkout  체크아웃 날짜 (필수) 예: 2026-07-19 / 0719 / 7월19일 / 7-19
-  --guests    인원 수 (기본값: 2)  예: 2
+  --name      숙소명 (필수)              예: "쏠비치 삼척"
+  --checkin   체크인 날짜 (필수)         예: 2026-07-18 / 0718 / 7월18일 / 7-18
+  --checkout  체크아웃 날짜 (필수)       예: 2026-07-19 / 0719 / 7월19일 / 7-19
+  --guests    인원 수 (기본값: 2)        예: 2
+  --notify    예약 가능 시 이메일 발송
+  --to        수신 이메일 (생략 시 NOTIFY_EMAIL 환경변수 사용)
 
 예시:
   npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin 0718 --checkout 0719 --guests 2
-  npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin "7월 18일" --checkout "7월 19일"
+  npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin 0718 --checkout 0719 --notify
+  npx ts-node src/checker.ts --name "쏠비치 삼척" --checkin 0718 --checkout 0719 --notify --to me@gmail.com
 `;
 
 async function main() {
   const argv = minimist(process.argv.slice(2), {
-    string: ["name", "checkin", "checkout"],
-    boolean: ["headless"],
-    default: { guests: 2, headless: false },
+    string: ["name", "checkin", "checkout", "to"],
+    boolean: ["headless", "notify"],
+    default: { guests: 2, headless: false, notify: false },
   });
 
   // 필수 인수 검증
@@ -74,13 +79,30 @@ async function main() {
   );
   console.log(`  인원  : ${guests}명\n`);
 
-  await checkAvailability({
+  const result = await checkAvailability({
     name: argv.name,
     checkIn,
     checkOut,
     guests,
     headless: argv.headless,
   });
+
+  if (argv.notify && result?.available) {
+    const to = argv.to || process.env.NOTIFY_EMAIL;
+    if (!to) {
+      console.warn(
+        "[알림] 수신 이메일이 없습니다. --to 옵션 또는 NOTIFY_EMAIL 환경변수를 설정하세요."
+      );
+    } else {
+      await sendNotification(result, {
+        to,
+        hotelName: argv.name,
+        checkin: `${checkIn.year}-${String(checkIn.month).padStart(2, "0")}-${String(checkIn.day).padStart(2, "0")}`,
+        checkout: `${checkOut.year}-${String(checkOut.month).padStart(2, "0")}-${String(checkOut.day).padStart(2, "0")}`,
+        guests,
+      });
+    }
+  }
 }
 
 main();

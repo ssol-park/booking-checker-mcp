@@ -1,8 +1,12 @@
+import path from "path";
+import dotenv from "dotenv";
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { parseDate } from "./parser";
 import { checkAvailability } from "./scraper";
+import { sendNotification } from "./notifier";
 
 const server = new McpServer({
   name: "naver-booking",
@@ -22,9 +26,11 @@ server.registerTool(
         .boolean()
         .default(false)
         .describe("브라우저 창 숨김 여부 (기본값: false — 창 표시)"),
+      notify: z.boolean().default(false).describe("예약 가능 시 이메일 발송 여부 (기본값: false)"),
+      to: z.string().optional().describe("수신 이메일 주소 (생략 시 NOTIFY_EMAIL 환경변수 사용)"),
     },
   },
-  async ({ name, checkin, checkout, guests, headless }) => {
+  async ({ name, checkin, checkout, guests, headless, notify, to }) => {
     const checkIn = parseDate(checkin);
     const checkOut = parseDate(checkout);
 
@@ -43,11 +49,30 @@ server.registerTool(
     console.log = (...args: unknown[]) => lines.push(args.join(" "));
     console.error = (...args: unknown[]) => lines.push("[오류] " + args.join(" "));
 
+    let result;
     try {
-      await checkAvailability({ name, checkIn, checkOut, guests, headless });
+      result = await checkAvailability({ name, checkIn, checkOut, guests, headless });
     } finally {
       console.log = originalLog;
       console.error = originalError;
+    }
+
+    if (notify && result?.available) {
+      const recipient = to || process.env.NOTIFY_EMAIL;
+      if (!recipient) {
+        lines.push(
+          "[알림] 수신 이메일이 없습니다. to 파라미터 또는 NOTIFY_EMAIL 환경변수를 설정하세요."
+        );
+      } else {
+        await sendNotification(result, {
+          to: recipient,
+          hotelName: name,
+          checkin,
+          checkout,
+          guests,
+        });
+        lines.push(`[알림] 이메일 발송 완료 → ${recipient}`);
+      }
     }
 
     return {

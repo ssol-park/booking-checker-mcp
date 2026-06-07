@@ -1,0 +1,40 @@
+name: Booking Check
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 매일 KST 09:00 (UTC 00:00)
+  workflow_dispatch: # GitHub UI에서 수동 실행 가능
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Run booking check
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        run: |
+          npx ts-node src/checker.ts \
+            --name "${{ vars.HOTEL_NAME }}" \
+            --checkin "${{ vars.CHECKIN }}" \
+            --checkout "${{ vars.CHECKOUT }}" \
+            --guests "${{ vars.GUESTS }}" \
+            --notify \
+            --headless

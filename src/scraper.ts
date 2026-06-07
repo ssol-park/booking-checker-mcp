@@ -18,7 +18,7 @@ export interface CheckResult {
 const fmt = (d: ParsedDate) =>
   `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
 
-export async function checkAvailability(options: CheckOptions): Promise<void> {
+export async function checkAvailability(options: CheckOptions): Promise<CheckResult | null> {
   const browser = await chromium.launch({ headless: options.headless ?? false });
   const page = await browser.newPage();
   let hotelFound = false;
@@ -28,7 +28,7 @@ export async function checkAvailability(options: CheckOptions): Promise<void> {
     const baseUrl = await findHotelBaseUrl(page, options.name);
     if (!baseUrl) {
       console.error(`❌ "${options.name}"의 네이버 호텔 페이지를 찾을 수 없습니다.`);
-      return;
+      return null;
     }
     hotelFound = true;
 
@@ -42,9 +42,11 @@ export async function checkAvailability(options: CheckOptions): Promise<void> {
     // 3. 결과 파싱 및 출력
     const result = await parseResult(page, url);
     printResult(options, result);
+    return result;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`\n오류 발생: ${message}`);
+    return null;
   } finally {
     const keepOpen = !(options.headless ?? false) && hotelFound;
     if (keepOpen) {
