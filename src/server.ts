@@ -27,10 +27,14 @@ server.registerTool(
         .default(false)
         .describe("브라우저 창 숨김 여부 (기본값: false — 창 표시)"),
       notify: z.boolean().default(false).describe("예약 가능 시 이메일 발송 여부 (기본값: false)"),
+      notifyAlways: z
+        .boolean()
+        .default(false)
+        .describe("예약 불가 시에도 이메일 발송 여부 (기본값: false)"),
       to: z.string().optional().describe("수신 이메일 주소 (생략 시 NOTIFY_EMAIL 환경변수 사용)"),
     },
   },
-  async ({ name, checkin, checkout, guests, headless, notify, to }) => {
+  async ({ name, checkin, checkout, guests, headless, notify, notifyAlways, to }) => {
     const checkIn = parseDate(checkin);
     const checkOut = parseDate(checkout);
 
@@ -57,7 +61,7 @@ server.registerTool(
       console.error = originalError;
     }
 
-    if (notify && result?.available) {
+    if (notify && result && (result.available || notifyAlways)) {
       const recipient = to || process.env.NOTIFY_EMAIL;
       if (!recipient) {
         lines.push(

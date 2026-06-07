@@ -25,8 +25,8 @@ const USAGE = `
 async function main() {
   const argv = minimist(process.argv.slice(2), {
     string: ["name", "checkin", "checkout", "to"],
-    boolean: ["headless", "notify"],
-    default: { guests: 2, headless: false, notify: false },
+    boolean: ["headless", "notify", "notify-always"],
+    default: { guests: 2, headless: false, notify: false, "notify-always": false },
   });
 
   // 필수 인수 검증
@@ -87,7 +87,7 @@ async function main() {
     headless: argv.headless,
   });
 
-  if (argv.notify && result?.available) {
+  if (argv.notify && result && (result.available || argv["notify-always"])) {
     const to = argv.to || process.env.NOTIFY_EMAIL;
     if (!to) {
       console.warn(

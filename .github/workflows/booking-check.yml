@@ -2,7 +2,7 @@ name: Booking Check
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 매일 KST 09:00 (UTC 00:00)
+    - cron: '30 1 * * *' # 매일 KST 10:30 (UTC 01:30)
   workflow_dispatch: # GitHub UI에서 수동 실행 가능
 
 jobs:
@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check date range
+        run: |
+          TODAY=$(TZ=Asia/Seoul date +%Y-%m-%d)
+          END_DATE="2026-06-22"
+          if [[ "$TODAY" > "$END_DATE" ]]; then
+            echo "📅 실행 기간 종료 ($TODAY > $END_DATE). 스킵합니다."
+            exit 0
+          fi
+          echo "📅 실행 날짜: $TODAY (종료일: $END_DATE)"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -37,4 +47,5 @@ jobs:
             --checkout "${{ vars.CHECKOUT }}" \
             --guests "${{ vars.GUESTS }}" \
             --notify \
+            --notify-always \
             --headless
