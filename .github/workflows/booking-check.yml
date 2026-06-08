@@ -2,7 +2,7 @@ name: Booking Check
 
 on:
   schedule:
-    - cron: '30 1 * * *' # 매일 KST 10:30 (UTC 01:30)
+    - cron: '*/5 * * * *' # 5분마다
   workflow_dispatch: # GitHub UI에서 수동 실행 가능
 
 jobs:

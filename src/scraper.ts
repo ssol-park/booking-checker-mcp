@@ -36,8 +36,8 @@ export async function checkAvailability(options: CheckOptions): Promise<CheckRes
     const url = buildHotelUrl(baseUrl, options);
     console.log(`호텔 페이지: ${url}`);
 
-    await page.goto(url, { waitUntil: "networkidle" });
-    await page.waitForTimeout(2000);
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForTimeout(10000);
 
     // 3. 결과 파싱 및 출력
     const result = await parseResult(page, url);
@@ -61,9 +61,10 @@ export async function checkAvailability(options: CheckOptions): Promise<CheckRes
 async function findHotelBaseUrl(page: Page, name: string): Promise<string | null> {
   console.log(`"${name}" 네이버 검색 중...`);
   await page.goto(`https://search.naver.com/search.naver?query=${encodeURIComponent(name)}`, {
-    waitUntil: "networkidle",
+    waitUntil: "domcontentloaded",
+    timeout: 60000,
   });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(10000);
 
   const hotelLinks = await page.$$eval("a[href*='hotels.naver.com/accommodation']", (els) =>
     els.map((el) => (el as HTMLAnchorElement).href)
