@@ -109,14 +109,25 @@ function buildHotelUrl(baseUrl: string, options: CheckOptions): string {
 async function parseResult(page: Page, url: string): Promise<CheckResult> {
   const bodyText = await page.innerText("body");
 
-  // 가격 추출 (예: "704,360원~")
+  // 예약 불가 명시 텍스트 감지
+  const noAvailabilityText = "선택하신 일정에 예약 가능한 객실이 없습니다.";
+  if (bodyText.includes(noAvailabilityText)) {
+    return { available: false, lowestPrice: null, url };
+  }
+
+  // 객실 카드 존재 여부로 예약 가능 판단 (양방향 확인)
+  const hasRoomCards = (await page.$$("[class*='rate_CommonRateItem']")).length > 0;
+  if (!hasRoomCards) {
+    // 불가 텍스트도 없고 객실 카드도 없으면 페이지 로딩 실패로 판단
+    console.warn("⚠️ 예약 불가 메시지도 없고 객실 카드도 없습니다. 페이지 로딩을 확인하세요.");
+    return { available: false, lowestPrice: null, url };
+  }
+
+  // 객실 카드가 있는 경우 — 최저가 추출 (객실 카드 영역 내 가격만)
   const priceMatch = bodyText.match(/([\d,]+)원~/);
   const lowestPrice = priceMatch ? `${priceMatch[1]}원~` : null;
 
-  const available =
-    lowestPrice !== null || ["예약하기", "가격비교", "원/1박"].some((k) => bodyText.includes(k));
-
-  return { available, lowestPrice, url };
+  return { available: true, lowestPrice, url };
 }
 
 function printResult(options: CheckOptions, result: CheckResult): void {
